@@ -7,7 +7,7 @@ from image_processing import detect_traffic_light, detect_person
 
 class AutonomousCar:
     def __init__(self):
-        self.motor = Motor(motor_pin_forward=18, motor_pin_backward=23)
+        self.motor = Motor(left_motor_pins=(18, 23), right_motor_pins=(24, 25))
         self.ultrasonic_sensor = UltrasonicSensor(trig_pin=17, echo_pin=27)  # 초음파 센서 초기화
         self.camera = cv2.VideoCapture(0)  # 0번 카메라 사용 (기본 카메라)
 
@@ -42,15 +42,21 @@ class AutonomousCar:
 
                 # 신호등 색상, 장애물, 사람 상태에 따른 모터 제어
                 if traffic_light_status == "green" and not obstacle_detected and not person_detected:
-                    # 녹색 신호등이고 장애물과 사람이 없을 때
                     print("Green light and clear path: Moving forward...")
                     self.motor.move_forward(50)  # 전진
+                elif traffic_light_status == "yellow":
+                    print("Yellow light: Turning left...")
+                    self.motor.turn_left(50)  # 좌회전
+                elif traffic_light_status == "blue":
+                    print("Blue light: Turning right...")
+                    self.motor.turn_right(50)  # 우회전
                 elif traffic_light_status == "red" or person_detected or obstacle_detected:
-                    # 빨간불이거나, 사람이 감지되었거나, 장애물이 있을 때
                     print("Red light, person detected, or obstacle: Stopping...")
                     self.motor.stop()  # 멈춤
+                elif traffic_light_status == "reverse":
+                    print("Reverse signal detected: Moving backward...")
+                    self.motor.move_backward(50)  # 후진
                 else:
-                    # 신호등 상태가 명확하지 않거나 다른 경우에도 멈춤
                     print("No clear traffic light signal, staying still.")
                     self.motor.stop()  # 대기 (멈춤)
 
